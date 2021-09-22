@@ -54,7 +54,13 @@ module JSONAPI
               ActiveSupport::Notifications.instrument('render.jsonapi-rails',
                                                       resources: resources,
                                                       options: options) do
-                renderer.render(resources, options, self).to_json
+                jsonapi_hash = renderer.render(resources, options, self)
+
+                if jsonapi_hash[:data]&.first&.class == JSONAPI::Renderer::CachedResourcesProcessor::JSONString
+                  JSON.generate jsonapi_hash
+                else
+                  jsonapi_hash.to_json
+                end
               end
             end
           end
